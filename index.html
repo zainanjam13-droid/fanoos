@@ -1208,7 +1208,7 @@ function populateCities() {
     const q = query.trim().toLowerCase();
     if (!q) { results.innerHTML = ''; return; }
 
-    const matches = CITIES.filter(c => c.name.toLowerCase().includes(q)).slice(0, 7);
+    const matches = CITIES.filter(city => city.name.toLowerCase().includes(q)).slice(0, 7);
 
     if (!matches.length) {
       results.innerHTML = '<div class="city-no-results">no cities found — try another spelling</div>';
@@ -1217,37 +1217,57 @@ function populateCities() {
 
     results.innerHTML = matches.map(city => {
       const region = CITY_REGIONS[city.name] || '';
-      const highlighted = city.name.replace(
-        new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'),
-        '<strong>$1</strong>'
-      );
+      const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const highlighted = city.name.replace(new RegExp('(' + esc + ')', 'gi'), '<strong>$1</strong>');
       return '<div class="city-result-item" data-city="' + city.name + '">' +
         '<span>' + highlighted + '</span>' +
         (region ? '<span class="city-result-region">' + region + '</span>' : '') +
         '</div>';
     }).join('');
-
-    results.querySelectorAll('.city-result-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const city = CITIES.find(c => c.name === el.dataset.city);
-        if (city) {
-          input.value = city.name;
-          results.innerHTML = '';
-          setLocation(city);
-        }
-      });
-    });
   }
+
+  // Use mousedown instead of click so it fires BEFORE the input blur
+  // and stopPropagation so the document click handler doesn't interfere
+  results.addEventListener('mousedown', ev => {
+    ev.preventDefault(); // prevent input blur
+    const item = ev.target.closest('.city-result-item');
+    if (!item) return;
+    const city = CITIES.find(city => city.name === item.dataset.city);
+    if (city) {
+      input.value = city.name;
+      results.innerHTML = '';
+      // Ensure Adhan is ready before or after setLocation
+      waitForAdhan(() => setLocation(city));
+    }
+  });
+
+  // Touch support — same pattern for mobile
+  results.addEventListener('touchstart', ev => {
+    const item = ev.target.closest('.city-result-item');
+    if (!item) return;
+    ev.preventDefault();
+    const city = CITIES.find(city => city.name === item.dataset.city);
+    if (city) {
+      input.value = city.name;
+      results.innerHTML = '';
+      waitForAdhan(() => setLocation(city));
+    }
+  }, { passive: false });
 
   input.addEventListener('input', () => renderResults(input.value));
   input.addEventListener('keydown', e => {
     if (e.key === 'Escape') { results.innerHTML = ''; input.value = ''; }
-  });
-  // Close results on outside click
-  document.addEventListener('click', ev => {
-    if (!input.contains(ev.target) && !results.contains(ev.target)) {
-      results.innerHTML = '';
+    if (e.key === 'Enter') {
+      const first = results.querySelector('.city-result-item');
+      if (first) {
+        const city = CITIES.find(city => city.name === first.dataset.city);
+        if (city) { input.value = city.name; results.innerHTML = ''; waitForAdhan(() => setLocation(city)); }
+      }
     }
+  });
+  input.addEventListener('blur', () => {
+    // Small delay so mousedown on a result fires first
+    setTimeout(() => { results.innerHTML = ''; }, 200);
   });
 }
 
@@ -1286,6 +1306,12 @@ document.getElementById('location-btn').addEventListener('click', () => {
   const ob = document.getElementById('onboarding');
   ob.classList.remove('hidden');
   ob.style.opacity = '1';
+  // Reset search state
+  const inp = document.getElementById('city-search');
+  const res = document.getElementById('city-results');
+  if (inp) inp.value = '';
+  if (res) res.innerHTML = '';
+  setTimeout(() => { if (inp) inp.focus(); }, 300);
 });
 
 // ─── MUTE ────────────────────────────────────────────────
