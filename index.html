@@ -983,11 +983,10 @@ function calcPrayers(lat, lon, methodId, utcOffset, date) {
 // ─── SKY ─────────────────────────────────────────────────
 function detectSky(p) {
   if (!p) return 'NIGHT';
-  // Compare times in UTC hours (prayer times stored as UTC = city local)
   const n = new Date();
-  // Get current city local time as UTC hours-of-day
-  const cityNowH = (n.getUTCHours() + n.getUTCMinutes()/60 +
-    (S.location ? S.location.utcOffset : 0)) % 24;
+  const utcOff = (S.location && S.location.utcOffset != null) ? S.location.utcOffset : 0;
+  const cityNowH = (n.getUTCHours() + n.getUTCMinutes()/60 + utcOff + 24) % 24;
+  if (isNaN(cityNowH)) return 'NIGHT';
   function pHour(d) { return d.getUTCHours() + d.getUTCMinutes()/60; }
   const fajrH    = pHour(p.fajr)    - 15/60;
   const sunriseH = pHour(p.sunrise);
@@ -1050,7 +1049,7 @@ function updateCountdown() {
   if (!S.prayerTimes) { document.getElementById('countdown-time').textContent = '--:--:--'; return; }
 
   // All times as city-local decimal hours — no epoch arithmetic
-  const utcOff = S.location ? S.location.utcOffset : 0;
+  const utcOff = (S.location && S.location.utcOffset != null) ? S.location.utcOffset : 0;
   const nowH = (now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600 + utcOff + 24) % 24;
   const fajrH    = (S.prayerTimes.fajr.getUTCHours()    + S.prayerTimes.fajr.getUTCMinutes()/60);
   const maghribH = (S.prayerTimes.maghrib.getUTCHours() + S.prayerTimes.maghrib.getUTCMinutes()/60);
@@ -1149,8 +1148,8 @@ function renderPrayerGrid() {
     {n:'Maghrib',t:S.prayerTimes.maghrib},
     {n:'Isha',   t:S.prayerTimes.isha},
   ];
-  const nowCityH = (now.getUTCHours() + now.getUTCMinutes()/60
-    + (S.location ? S.location.utcOffset : 0)) % 24;
+  const _utcOff = (S.location && S.location.utcOffset != null) ? S.location.utcOffset : 0;
+  const nowCityH = (now.getUTCHours() + now.getUTCMinutes()/60 + _utcOff + 24) % 24;
   let activeIdx = 0;
   for (let i = entries.length - 1; i >= 0; i--) {
     const entH = entries[i].t.getUTCHours() + entries[i].t.getUTCMinutes()/60;
@@ -1635,9 +1634,11 @@ function restore() {
   const method = localStorage.getItem('fanoos_method');
   if (muted !== null) { S.muted = muted === 'true'; document.getElementById('mute-btn').textContent = S.muted ? '🔇' : '🔔'; }
   if (loc) {
-    const city = JSON.parse(loc);
-    if (method) city.method = method;
-    waitForAdhan(() => setLocation(city));
+    const saved = JSON.parse(loc);
+    // Always re-hydrate from CITIES array to pick up any new fields (e.g. utcOffset)
+    const fresh = CITIES.find(c => c.name === saved.name) || saved;
+    if (method) fresh.method = method;
+    waitForAdhan(() => setLocation(fresh));
   }
 }
 
