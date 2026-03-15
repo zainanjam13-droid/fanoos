@@ -1048,20 +1048,34 @@ function updateCountdown() {
   document.getElementById('clock-time').textContent =
     now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
   if (!S.prayerTimes) { document.getElementById('countdown-time').textContent = '--:--:--'; return; }
-  const { fajr, maghrib } = S.prayerTimes;
-  // Compare using UTC hours (prayer times stored as UTC = city local)
-  const cityH = (now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600
-    + (S.location ? S.location.utcOffset : 0)) % 24;
-  const fajrH = fajr.getUTCHours() + fajr.getUTCMinutes()/60;
-  const maghribH = maghrib.getUTCHours() + maghrib.getUTCMinutes()/60;
-  let target;
-  if (cityH < fajrH) target = fajr;
-  else if (cityH < maghribH) target = maghrib;
-  else target = new Date(fajr.getTime() + 86400000);
-  const diff = Math.max(0, target - now);
-  const h = pad(diff / 3600000);
-  const m = pad((diff % 3600000) / 60000);
-  const sc = pad((diff % 60000) / 1000);
+
+  // All times as city-local decimal hours — no epoch arithmetic
+  const utcOff = S.location ? S.location.utcOffset : 0;
+  const nowH = (now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600 + utcOff + 24) % 24;
+  const fajrH    = (S.prayerTimes.fajr.getUTCHours()    + S.prayerTimes.fajr.getUTCMinutes()/60);
+  const maghribH = (S.prayerTimes.maghrib.getUTCHours() + S.prayerTimes.maghrib.getUTCMinutes()/60);
+
+  let targetH, label, iftar;
+  if (nowH < fajrH) {
+    targetH = fajrH; label = 'SUHOOR IN'; iftar = false;
+  } else if (nowH < maghribH) {
+    targetH = maghribH; label = 'IFTAR IN'; iftar = true;
+  } else {
+    targetH = fajrH + 24; label = 'SUHOOR IN'; iftar = false;
+  }
+
+  // Update badge label
+  const badge = document.getElementById('cdl-badge');
+  if (badge) {
+    badge.textContent = label;
+    badge.className = 'cdl-badge' + (iftar ? ' iftar' : '');
+  }
+
+  // Remaining time in seconds
+  const remainSecs = Math.max(0, Math.round((targetH - nowH) * 3600));
+  const h = pad(Math.floor(remainSecs / 3600));
+  const m = pad(Math.floor((remainSecs % 3600) / 60));
+  const sc = pad(remainSecs % 60);
   document.getElementById('countdown-time').textContent = h + ':' + m + ':' + sc;
 }
 
