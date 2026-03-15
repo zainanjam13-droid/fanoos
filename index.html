@@ -40,7 +40,7 @@ html, body {
 .sky-layer {
   position: absolute; inset: 0;
   background-size: cover;
-  background-position: center top;
+  background-position: center 20%;
   transition: opacity 90s ease-in-out;
   will-change: opacity;
 }
@@ -123,38 +123,13 @@ html, body {
 }
 .hbtn:active { transform: scale(0.88); }
 
-/* ── STATE PILL ──────────────────────────────── */
-#state-pill-wrap {
-  width: 100%; max-width: 420px;
-  display: flex; justify-content: center;
-  padding: 0 20px 10px;
-}
-.state-pill {
-  background: rgba(255,255,255,0.22);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(255,255,255,0.4);
-  border-radius: 999px;
-  padding: 5px 16px 5px 10px;
-  display: flex; align-items: center; gap: 7px;
-  color: white;
-  font-family: 'Nunito', sans-serif;
-  font-size: 12px; font-weight: 700;
-  letter-spacing: 0.08em;
-}
-.pill-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 6px var(--gold);
-  animation: dot-pulse 2s ease-in-out infinite;
-}
-@keyframes dot-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
+
 
 /* ── MAIN CARD ───────────────────────────────── */
 #main-card-wrap {
   width: 100%; max-width: 420px;
-  padding: 0 16px;
-  flex: 1; display: flex; align-items: center;
+  padding: 64px 16px 0;
+  flex: 1; display: flex; align-items: flex-start;
   position: relative;
 }
 #main-card {
@@ -477,34 +452,7 @@ html, body {
 .method-option:hover { background: var(--sage-light); }
 .method-option.selected { background: var(--ink); color: white; border-radius: 10px; }
 
-/* ── SKY STATE SWITCHER ──────────────────────── */
-#sky-switcher {
-  width: 100%; max-width: 420px;
-  padding: 8px 16px;
-  display: flex; align-items: center; gap: 6px;
-  justify-content: center;
-}
-.sky-btn {
-  font-family: 'Nunito', sans-serif;
-  font-size: 11px; font-weight: 700;
-  padding: 5px 13px; border-radius: 999px;
-  border: 1.5px solid rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(8px);
-  color: rgba(255,255,255,0.75);
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 0.05em;
-}
-.sky-btn:hover { background: rgba(255,255,255,0.25); color: white; }
-.sky-btn.active {
-  background: rgba(255,255,255,0.88);
-  color: var(--ink); border-color: white;
-  font-weight: 800;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-}
-.sky-btn.reset-btn { color: rgba(255,180,180,0.8); border-color: rgba(255,180,180,0.3); }
-.sky-btn.reset-btn:hover { background: rgba(255,180,180,0.15); }
+
 
 /* ── BOTTOM CLOCK ────────────────────────────── */
 #bottom-clock {
@@ -698,7 +646,7 @@ html, body {
   <div id="header">
     <div class="app-wordmark">
       fanoos
-      <span>فانوس · رمضان</span>
+      <span>رمضان مبارك</span>
     </div>
     <div class="header-btns">
       <div class="hbtn" id="mute-btn" title="Toggle chime">🔇</div>
@@ -706,13 +654,6 @@ html, body {
     </div>
   </div>
 
-  <!-- STATE PILL -->
-  <div id="state-pill-wrap">
-    <div class="state-pill">
-      <div class="pill-dot"></div>
-      <span id="state-label">Night Vigil</span>
-    </div>
-  </div>
 
   <!-- MAIN CARD -->
   <div id="main-card-wrap">
@@ -766,15 +707,6 @@ html, body {
     </div>
   </div>
 
-  <!-- SKY SWITCHER -->
-  <div id="sky-switcher">
-    <button class="sky-btn" data-state="DAWN">Dawn</button>
-    <button class="sky-btn" data-state="DAY">Day</button>
-    <button class="sky-btn active" data-state="DUSK">Dusk</button>
-    <button class="sky-btn" data-state="NIGHT">Night</button>
-    <button class="sky-btn reset-btn" id="reset-btn">Auto</button>
-  </div>
-
   <!-- BOTTOM CLOCK -->
   <div id="bottom-clock" class="hidden">
     <div class="clock-chip">
@@ -820,45 +752,39 @@ const PrayerCalc = (() => {
   const DEG = 180 / Math.PI;
 
   function julianDate(date) {
-    const Y = date.getFullYear(), M = date.getMonth() + 1, D = date.getDate();
-    const A = Math.floor((14 - M) / 12);
-    const y = Y + 4800 - A, m = M + 12 * A - 3;
-    return D + Math.floor((153*m+2)/5) + 365*y +
-      Math.floor(y/4) - Math.floor(y/100) + Math.floor(y/400) - 32045;
+    const Y = date.getFullYear(), M = date.getMonth()+1, D = date.getDate();
+    const A = Math.floor((14-M)/12), y = Y+4800-A, m = M+12*A-3;
+    return D+Math.floor((153*m+2)/5)+365*y+Math.floor(y/4)-Math.floor(y/100)+Math.floor(y/400)-32045;
   }
 
   function sunPosition(jd) {
-    const D = jd - 2451545.0;
-    const g = (357.529 + 0.98560028*D) % 360;
-    const q = (280.459 + 0.98564736*D) % 360;
-    const L = (q + 1.915*Math.sin(g*RAD) + 0.020*Math.sin(2*g*RAD)) % 360;
-    const e = 23.439 - 0.00000036*D;
-    const sinL = Math.sin(L*RAD);
+    const D = jd-2451545.0;
+    const g = (357.529+0.98560028*D)%360;
+    const q = (280.459+0.98564736*D)%360;
+    const L = (q+1.915*Math.sin(g*RAD)+0.020*Math.sin(2*g*RAD))%360;
+    const e = 23.439-0.00000036*D, sinL = Math.sin(L*RAD);
     const RA = Math.atan2(Math.cos(e*RAD)*sinL, Math.cos(L*RAD))*DEG/15;
     const dec = Math.asin(Math.sin(e*RAD)*sinL)*DEG;
-    const EqT = q/15 - ((RA % 24) + 24) % 24;
-    return { dec, EqT };
+    return { dec, EqT: q/15-((RA%24)+24)%24 };
   }
 
   function hourAngle(lat, dec, angle) {
-    const v = (-Math.sin(angle*RAD) - Math.sin(lat*RAD)*Math.sin(dec*RAD)) /
+    // angle = solar altitude (negative = below horizon, e.g. -18 for fajr)
+    const v = (Math.sin(angle*RAD)-Math.sin(lat*RAD)*Math.sin(dec*RAD)) /
                (Math.cos(lat*RAD)*Math.cos(dec*RAD));
-    if (v < -1 || v > 1) return null;
+    if (v<-1||v>1) return null;
     return Math.acos(v)*DEG/15;
   }
 
   function asrAngle(lat, dec) {
-    const a = -Math.atan(1 / (1 + Math.tan(Math.abs(lat - dec)*RAD)))*DEG;
-    return hourAngle(lat, dec, a);
+    return hourAngle(lat, dec, Math.atan(1/(1+Math.tan(Math.abs(lat-dec)*RAD)))*DEG);
   }
 
-  // Build a Date object in the browser's local timezone at the given H:M:S
-  function localDate(date, decimalHours) {
-    const h = ((decimalHours % 24) + 24) % 24;
-    const hh = Math.floor(h);
-    const mm = Math.floor((h - hh) * 60);
-    const ss = Math.round(((h - hh) * 60 - mm) * 60);
-    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hh, mm, ss);
+  // Store prayer local time as UTC epoch so fmt2(timeZone:'UTC') shows city time
+  function toUTC(date, prayerLocalH) {
+    const h = ((prayerLocalH%24)+24)%24;
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    d.setTime(d.getTime() + Math.round(h * 3600000));
     return d;
   }
 
@@ -868,20 +794,23 @@ const PrayerCalc = (() => {
     Egyptian:              [19.5, 17.5, false],
     Dubai:                 [18.2, 18.2, false],
     Singapore:             [20,   18,   false],
-    UmmAlQura:             [18.5, 90,   true],
+    UmmAlQura:             [18.5, 90,   true ],
     Karachi:               [18,   18,   false],
     Kuwait:                [18,   17.5, false],
     MoonsightingCommittee: [18,   18,   false],
   };
 
   return {
-    calculate(lat, lon, date, methodId) {
+    // utcOffset = civil UTC offset for the city (e.g. 8 for Singapore, -5 for NYC)
+    calculate(lat, lon, date, methodId, utcOffset) {
       const [fajrAngle, ishaVal, ishaIsMin] = METHODS[methodId] || METHODS.MuslimWorldLeague;
+      const tz = (utcOffset !== undefined) ? utcOffset : lon/15;
+
       const jd = julianDate(date);
       const { dec, EqT } = sunPosition(jd);
 
-      // Solar noon in UTC decimal hours
-      const noonUTC = 12 - EqT - lon / 15;
+      // Solar noon in local city time
+      const noonLocal = 12 - EqT + (tz - lon/15);
 
       const sunriseHA = hourAngle(lat, dec, -0.8333);
       if (sunriseHA === null) return null;
@@ -890,26 +819,21 @@ const PrayerCalc = (() => {
       const asrHA  = asrAngle(lat, dec);
       const ishaHA = hourAngle(lat, dec, -ishaVal);
 
-      // Convert UTC hours to city local time (lon/15 = UTC offset)
-      const tz = lon / 15;
-      const toLocal = utcH => utcH + tz;
-
-      const fajrL    = toLocal(noonUTC - (fajrHA ?? sunriseHA + 1.5));
-      const sunriseL = toLocal(noonUTC - sunriseHA);
-      const dhuhrL   = toLocal(noonUTC + 0.05);
-      const asrL     = toLocal(noonUTC + (asrHA ?? 6));
-      const maghribL = toLocal(noonUTC + sunriseHA);
-      const ishaL    = ishaIsMin
-        ? maghribL + ishaVal / 60
-        : toLocal(noonUTC + (ishaHA ?? sunriseHA + 1.5));
+      const fajrL    = noonLocal - (fajrHA    ?? sunriseHA+1.5);
+      const sunriseL = noonLocal - sunriseHA;
+      const dhuhrL   = noonLocal + 0.05;
+      const asrL     = noonLocal + (asrHA ?? 6);
+      const maghribL = noonLocal + sunriseHA;
+      const ishaL    = ishaIsMin ? maghribL+ishaVal/60
+                                 : noonLocal+(ishaHA ?? sunriseHA+1.5);
 
       return {
-        fajr:    localDate(date, fajrL),
-        sunrise: localDate(date, sunriseL),
-        dhuhr:   localDate(date, dhuhrL),
-        asr:     localDate(date, asrL),
-        maghrib: localDate(date, maghribL),
-        isha:    localDate(date, ishaL),
+        fajr:    toUTC(date, fajrL),
+        sunrise: toUTC(date, sunriseL),
+        dhuhr:   toUTC(date, dhuhrL),
+        asr:     toUTC(date, asrL),
+        maghrib: toUTC(date, maghribL),
+        isha:    toUTC(date, ishaL),
       };
     }
   };
@@ -961,57 +885,57 @@ const CITY_REGIONS = {
 };
 
 const CITIES = [
-  {name:'Abu Dhabi',lat:24.4539,lon:54.3773,method:'Dubai'},
-  {name:'Amman',lat:31.9454,lon:35.9284,method:'MuslimWorldLeague'},
-  {name:'Amsterdam',lat:52.3676,lon:4.9041,method:'MuslimWorldLeague'},
-  {name:'Ankara',lat:39.9334,lon:32.8597,method:'MuslimWorldLeague'},
-  {name:'Astana',lat:51.1801,lon:71.4460,method:'MuslimWorldLeague'},
-  {name:'Baghdad',lat:33.3152,lon:44.3661,method:'MuslimWorldLeague'},
-  {name:'Baku',lat:40.4093,lon:49.8671,method:'MuslimWorldLeague'},
-  {name:'Beirut',lat:33.8938,lon:35.5018,method:'MuslimWorldLeague'},
-  {name:'Berlin',lat:52.5200,lon:13.4050,method:'MuslimWorldLeague'},
-  {name:'Birmingham',lat:52.4862,lon:-1.8904,method:'MuslimWorldLeague'},
-  {name:'Cairo',lat:30.0444,lon:31.2357,method:'Egyptian'},
-  {name:'Casablanca',lat:33.5731,lon:-7.5898,method:'MuslimWorldLeague'},
-  {name:'Chicago',lat:41.8781,lon:-87.6298,method:'NorthAmerica'},
-  {name:'Colombo',lat:6.9271,lon:79.8612,method:'MuslimWorldLeague'},
-  {name:'Dakar',lat:14.7167,lon:-17.4677,method:'MuslimWorldLeague'},
-  {name:'Dallas',lat:32.7767,lon:-96.7970,method:'NorthAmerica'},
-  {name:'Dhaka',lat:23.8103,lon:90.4125,method:'Karachi'},
-  {name:'Dubai',lat:25.2048,lon:55.2708,method:'Dubai'},
-  {name:'Houston',lat:29.7604,lon:-95.3698,method:'NorthAmerica'},
-  {name:'Istanbul',lat:41.0082,lon:28.9784,method:'MuslimWorldLeague'},
-  {name:'Jakarta',lat:-6.2088,lon:106.8456,method:'Singapore'},
-  {name:'Jeddah',lat:21.4858,lon:39.1925,method:'UmmAlQura'},
-  {name:'Johannesburg',lat:-26.2041,lon:28.0473,method:'MuslimWorldLeague'},
-  {name:'Kabul',lat:34.5553,lon:69.2075,method:'Karachi'},
-  {name:'Karachi',lat:24.8607,lon:67.0011,method:'Karachi'},
-  {name:'Khartoum',lat:15.5007,lon:32.5599,method:'MuslimWorldLeague'},
-  {name:'Kuala Lumpur',lat:3.1390,lon:101.6869,method:'Singapore'},
-  {name:'Kuwait City',lat:29.3759,lon:47.9774,method:'Kuwait'},
-  {name:'Lagos',lat:6.5244,lon:3.3792,method:'MuslimWorldLeague'},
-  {name:'Lahore',lat:31.5204,lon:74.3587,method:'Karachi'},
-  {name:'London',lat:51.5074,lon:-0.1278,method:'MuslimWorldLeague'},
-  {name:'Los Angeles',lat:34.0522,lon:-118.2437,method:'NorthAmerica'},
-  {name:'Madrid',lat:40.4168,lon:-3.7038,method:'MuslimWorldLeague'},
-  {name:'Makkah',lat:21.4225,lon:39.8262,method:'UmmAlQura'},
-  {name:'Manchester',lat:53.4808,lon:-2.2426,method:'MuslimWorldLeague'},
-  {name:'Madinah',lat:24.5247,lon:39.5692,method:'UmmAlQura'},
-  {name:'Melbourne',lat:-37.8136,lon:144.9631,method:'MuslimWorldLeague'},
-  {name:'Muscat',lat:23.5880,lon:58.3829,method:'Dubai'},
-  {name:'Nairobi',lat:-1.2921,lon:36.8219,method:'MuslimWorldLeague'},
-  {name:'New York',lat:40.7128,lon:-74.0060,method:'NorthAmerica'},
-  {name:'Paris',lat:48.8566,lon:2.3522,method:'MuslimWorldLeague'},
-  {name:'Riyadh',lat:24.7136,lon:46.6753,method:'UmmAlQura'},
-  {name:'Singapore',lat:1.3521,lon:103.8198,method:'Singapore'},
-  {name:'Stockholm',lat:59.3293,lon:18.0686,method:'MuslimWorldLeague'},
-  {name:'Sydney',lat:-33.8688,lon:151.2093,method:'MuslimWorldLeague'},
-  {name:'Tashkent',lat:41.2995,lon:69.2401,method:'MuslimWorldLeague'},
-  {name:'Tehran',lat:35.6892,lon:51.3890,method:'MuslimWorldLeague'},
-  {name:'Toronto',lat:43.6532,lon:-79.3832,method:'NorthAmerica'},
-  {name:'Tripoli',lat:32.8872,lon:13.1913,method:'MuslimWorldLeague'},
-  {name:'Tunis',lat:36.8065,lon:10.1815,method:'MuslimWorldLeague'},
-  {name:'Washington DC',lat:38.9072,lon:-77.0369,method:'NorthAmerica'},
+  {name:'Abu Dhabi',lat:24.4539,lon:54.3773,method:'Dubai',utcOffset:4},
+  {name:'Amman',lat:31.9454,lon:35.9284,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'Amsterdam',lat:52.3676,lon:4.9041,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Ankara',lat:39.9334,lon:32.8597,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'Astana',lat:51.1801,lon:71.4460,method:'MuslimWorldLeague',utcOffset:6},
+  {name:'Baghdad',lat:33.3152,lon:44.3661,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'Baku',lat:40.4093,lon:49.8671,method:'MuslimWorldLeague',utcOffset:4},
+  {name:'Beirut',lat:33.8938,lon:35.5018,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'Berlin',lat:52.5200,lon:13.4050,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Birmingham',lat:52.4862,lon:-1.8904,method:'MuslimWorldLeague',utcOffset:0},
+  {name:'Cairo',lat:30.0444,lon:31.2357,method:'Egyptian',utcOffset:2},
+  {name:'Casablanca',lat:33.5731,lon:-7.5898,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Chicago',lat:41.8781,lon:-87.6298,method:'NorthAmerica',utcOffset:-6},
+  {name:'Colombo',lat:6.9271,lon:79.8612,method:'MuslimWorldLeague',utcOffset:5.5},
+  {name:'Dakar',lat:14.7167,lon:-17.4677,method:'MuslimWorldLeague',utcOffset:0},
+  {name:'Dallas',lat:32.7767,lon:-96.7970,method:'NorthAmerica',utcOffset:-6},
+  {name:'Dhaka',lat:23.8103,lon:90.4125,method:'Karachi',utcOffset:6},
+  {name:'Dubai',lat:25.2048,lon:55.2708,method:'Dubai',utcOffset:4},
+  {name:'Houston',lat:29.7604,lon:-95.3698,method:'NorthAmerica',utcOffset:-6},
+  {name:'Istanbul',lat:41.0082,lon:28.9784,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'Jakarta',lat:-6.2088,lon:106.8456,method:'Singapore',utcOffset:7},
+  {name:'Jeddah',lat:21.4858,lon:39.1925,method:'UmmAlQura',utcOffset:3},
+  {name:'Johannesburg',lat:-26.2041,lon:28.0473,method:'MuslimWorldLeague',utcOffset:2},
+  {name:'Kabul',lat:34.5553,lon:69.2075,method:'Karachi',utcOffset:4.5},
+  {name:'Karachi',lat:24.8607,lon:67.0011,method:'Karachi',utcOffset:5},
+  {name:'Khartoum',lat:15.5007,lon:32.5599,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'Kuala Lumpur',lat:3.1390,lon:101.6869,method:'Singapore',utcOffset:8},
+  {name:'Kuwait City',lat:29.3759,lon:47.9774,method:'Kuwait',utcOffset:3},
+  {name:'Lagos',lat:6.5244,lon:3.3792,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Lahore',lat:31.5204,lon:74.3587,method:'Karachi',utcOffset:5},
+  {name:'London',lat:51.5074,lon:-0.1278,method:'MuslimWorldLeague',utcOffset:0},
+  {name:'Los Angeles',lat:34.0522,lon:-118.2437,method:'NorthAmerica',utcOffset:-8},
+  {name:'Madrid',lat:40.4168,lon:-3.7038,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Makkah',lat:21.4225,lon:39.8262,method:'UmmAlQura',utcOffset:3},
+  {name:'Manchester',lat:53.4808,lon:-2.2426,method:'MuslimWorldLeague',utcOffset:0},
+  {name:'Madinah',lat:24.5247,lon:39.5692,method:'UmmAlQura',utcOffset:3},
+  {name:'Melbourne',lat:-37.8136,lon:144.9631,method:'MuslimWorldLeague',utcOffset:11},
+  {name:'Muscat',lat:23.5880,lon:58.3829,method:'Dubai',utcOffset:4},
+  {name:'Nairobi',lat:-1.2921,lon:36.8219,method:'MuslimWorldLeague',utcOffset:3},
+  {name:'New York',lat:40.7128,lon:-74.0060,method:'NorthAmerica',utcOffset:-5},
+  {name:'Paris',lat:48.8566,lon:2.3522,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Riyadh',lat:24.7136,lon:46.6753,method:'UmmAlQura',utcOffset:3},
+  {name:'Singapore',lat:1.3521,lon:103.8198,method:'Singapore',utcOffset:8},
+  {name:'Stockholm',lat:59.3293,lon:18.0686,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Sydney',lat:-33.8688,lon:151.2093,method:'MuslimWorldLeague',utcOffset:11},
+  {name:'Tashkent',lat:41.2995,lon:69.2401,method:'MuslimWorldLeague',utcOffset:5},
+  {name:'Tehran',lat:35.6892,lon:51.3890,method:'MuslimWorldLeague',utcOffset:3.5},
+  {name:'Toronto',lat:43.6532,lon:-79.3832,method:'NorthAmerica',utcOffset:-5},
+  {name:'Tripoli',lat:32.8872,lon:13.1913,method:'MuslimWorldLeague',utcOffset:2},
+  {name:'Tunis',lat:36.8065,lon:10.1815,method:'MuslimWorldLeague',utcOffset:1},
+  {name:'Washington DC',lat:38.9072,lon:-77.0369,method:'NorthAmerica',utcOffset:-5},
 ].sort((a,b) => a.name.localeCompare(b.name));
 
 // ─── STATE ───────────────────────────────────────────────
@@ -1050,22 +974,28 @@ function auditMethods() {
   console.log('[Fanoos] Using embedded prayer calculator');
 }
 
-function calcPrayers(lat, lon, methodId) {
+function calcPrayers(lat, lon, methodId, utcOffset, date) {
   try {
-    return PrayerCalc.calculate(lat, lon, new Date(), methodId || 'MuslimWorldLeague');
+    return PrayerCalc.calculate(lat, lon, date || new Date(), methodId || 'MuslimWorldLeague', utcOffset);
   } catch(e) { console.error('[Fanoos] calcPrayers error:', e); return null; }
 }
 
 // ─── SKY ─────────────────────────────────────────────────
 function detectSky(p) {
   if (!p) return 'NIGHT';
+  // Compare times in UTC hours (prayer times stored as UTC = city local)
   const n = new Date();
-  // Anticipation windows: sky begins transitioning before the prayer hits
-  const preDawn = new Date(p.fajr.getTime()    - 15 * 60 * 1000); // 15 min before Fajr
-  const preDusk = new Date(p.maghrib.getTime() - 20 * 60 * 1000); // 20 min before Maghrib
-  if (n >= preDawn && n < p.sunrise) return 'DAWN';
-  if (n >= p.sunrise && n < preDusk) return 'DAY';
-  if (n >= preDusk  && n < p.isha)   return 'DUSK';
+  // Get current city local time as UTC hours-of-day
+  const cityNowH = (n.getUTCHours() + n.getUTCMinutes()/60 +
+    (S.location ? S.location.utcOffset : 0)) % 24;
+  function pHour(d) { return d.getUTCHours() + d.getUTCMinutes()/60; }
+  const fajrH    = pHour(p.fajr)    - 15/60;
+  const sunriseH = pHour(p.sunrise);
+  const preDusk  = pHour(p.maghrib) - 20/60;
+  const ishaH    = pHour(p.isha);
+  if (cityNowH >= fajrH    && cityNowH < sunriseH) return 'DAWN';
+  if (cityNowH >= sunriseH && cityNowH < preDusk)  return 'DAY';
+  if (cityNowH >= preDusk  && cityNowH < ishaH)    return 'DUSK';
   return 'NIGHT';
 }
 
@@ -1076,13 +1006,11 @@ function setSky(s) {
     if (el) el.style.opacity = (k.toUpperCase() === s) ? '1' : '0';
   });
   const cfg = SKY[s];
-  document.getElementById('state-label').textContent = cfg.label;
+
   const badge = document.getElementById('cdl-badge');
   badge.textContent = cfg.cdl;
   badge.className = 'cdl-badge' + (cfg.cdlIftar ? ' iftar' : '');
-  document.querySelectorAll('.sky-btn[data-state]').forEach(b => {
-    b.classList.toggle('active', b.dataset.state === s);
-  });
+
   updateKokoMood(s);
   // toggle CSS ✦ sparkles — only visible in NIGHT
   const ns = document.getElementById('night-sparkles');
@@ -1113,7 +1041,7 @@ document.getElementById('koko-wrap').addEventListener('click', () => {
 
 // ─── COUNTDOWN ───────────────────────────────────────────
 function pad(n) { return String(Math.floor(Math.abs(n))).padStart(2,'0'); }
-function fmt2(d) { return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}); }
+function fmt2(d) { return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'UTC'}); }
 
 function updateCountdown() {
   const now = new Date();
@@ -1121,9 +1049,14 @@ function updateCountdown() {
     now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
   if (!S.prayerTimes) { document.getElementById('countdown-time').textContent = '--:--:--'; return; }
   const { fajr, maghrib } = S.prayerTimes;
+  // Compare using UTC hours (prayer times stored as UTC = city local)
+  const cityH = (now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600
+    + (S.location ? S.location.utcOffset : 0)) % 24;
+  const fajrH = fajr.getUTCHours() + fajr.getUTCMinutes()/60;
+  const maghribH = maghrib.getUTCHours() + maghrib.getUTCMinutes()/60;
   let target;
-  if (now < fajr) target = fajr;
-  else if (now < maghrib) target = maghrib;
+  if (cityH < fajrH) target = fajr;
+  else if (cityH < maghribH) target = maghrib;
   else target = new Date(fajr.getTime() + 86400000);
   const diff = Math.max(0, target - now);
   const h = pad(diff / 3600000);
@@ -1146,7 +1079,7 @@ function renderDayRef() {
   // Adhan uses current date by default — recalculate for tomorrow
   let tFajr = S.prayerTimes.fajr, tMaghrib = S.prayerTimes.maghrib;
   try {
-    const tmw = PrayerCalc.calculate(S.location.lat, S.location.lon, tomorrow, S.method);
+    const tmw = PrayerCalc.calculate(S.location.lat, S.location.lon, tomorrow, S.method, S.location.utcOffset);
     if (tmw) { tFajr = tmw.fajr; tMaghrib = tmw.maghrib; }
   } catch(e) { console.warn('[Fanoos] Tomorrow calc failed', e); }
 
@@ -1202,8 +1135,13 @@ function renderPrayerGrid() {
     {n:'Maghrib',t:S.prayerTimes.maghrib},
     {n:'Isha',   t:S.prayerTimes.isha},
   ];
+  const nowCityH = (now.getUTCHours() + now.getUTCMinutes()/60
+    + (S.location ? S.location.utcOffset : 0)) % 24;
   let activeIdx = 0;
-  for (let i = entries.length - 1; i >= 0; i--) { if (now >= entries[i].t) { activeIdx = i; break; } }
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const entH = entries[i].t.getUTCHours() + entries[i].t.getUTCMinutes()/60;
+    if (nowCityH >= entH) { activeIdx = i; break; }
+  }
   grid.innerHTML = entries.map((e,i) =>
     '<div class="prayer-pill' + (i===activeIdx?' active':'') + '">' +
     '<div class="pill-dot-prayer"></div>' +
@@ -1230,7 +1168,7 @@ function selectMethod(id, name) {
   document.getElementById('method-label').textContent = name;
   document.getElementById('method-dropdown').classList.add('hidden');
   S.methodMenuOpen = false;
-  if (S.location) { S.prayerTimes = calcPrayers(S.location.lat, S.location.lon, id); renderPrayerGrid();
+  if (S.location) { S.prayerTimes = calcPrayers(S.location.lat, S.location.lon, id, S.location.utcOffset); renderPrayerGrid();
   renderDayRef(); }
 }
 
@@ -1327,14 +1265,14 @@ function setLocation(city) {
   document.getElementById('method-label').textContent = mName;
   document.getElementById('clock-city').textContent = city.name;
   // Always attempt calc — works whether adhan is ready or not
-  S.prayerTimes = calcPrayers(city.lat, city.lon, S.method);
+  S.prayerTimes = calcPrayers(city.lat, city.lon, S.method, city.utcOffset);
   if (!S.manualSky) setSky(detectSky(S.prayerTimes));
   renderPrayerGrid();
   renderDayRef();
   // If adhan wasn't ready yet, retry once it is
   if (!S.prayerTimes) {
     waitForAdhan(() => {
-      S.prayerTimes = calcPrayers(city.lat, city.lon, S.method);
+      S.prayerTimes = calcPrayers(city.lat, city.lon, S.method, city.utcOffset);
       if (!S.manualSky) setSky(detectSky(S.prayerTimes));
       renderPrayerGrid();
       renderDayRef();
@@ -1389,14 +1327,7 @@ function maybeChime(sky) {
   } catch(e) { console.warn('[Fanoos] audio blocked'); }
 }
 
-// ─── SKY SWITCHER ────────────────────────────────────────
-document.querySelectorAll('.sky-btn[data-state]').forEach(btn => {
-  btn.addEventListener('click', () => { S.manualSky = btn.dataset.state; setSky(btn.dataset.state); });
-});
-document.getElementById('reset-btn').addEventListener('click', () => {
-  S.manualSky = null;
-  if (S.prayerTimes) setSky(detectSky(S.prayerTimes));
-});
+
 
 // ─── SPARKLES ────────────────────────────────────────────
 // ─── SKY CANVAS ENGINE ───────────────────────────────────
